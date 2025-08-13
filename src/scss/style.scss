@@ -1,0 +1,157 @@
+:root[data-theme="dark"],
+[data-theme="dark"],
+html[data-theme="dark"],
+body[data-theme="dark"] {
+	color-scheme: dark !important;
+
+	--color-base-100: oklch(18% 0.02 260) !important;
+	--color-base-200: oklch(22% 0.02 260) !important;
+	--color-base-300: oklch(28% 0.02 260) !important;
+	--color-base-content: oklch(90% 0.02 260) !important;
+
+	--color-primary: oklch(70% 0.17 257) !important;
+	--color-primary-content: oklch(15% 0.02 257) !important;
+	--color-secondary: oklch(65% 0.12 282) !important;
+	--color-secondary-content: oklch(14% 0.02 282) !important;
+	--color-accent: oklch(72% 0.14 335) !important;
+	--color-accent-content: oklch(16% 0.02 335) !important;
+
+	--color-neutral: oklch(30% 0.03 260) !important;
+	--color-neutral-content: oklch(92% 0.02 260) !important;
+	--color-info: oklch(78% 0.12 214) !important;
+	--color-info-content: oklch(18% 0.02 214) !important;
+	--color-success: oklch(72% 0.11 197) !important;
+	--color-success-content: oklch(16% 0.02 197) !important;
+	--color-warning: oklch(80% 0.08 71) !important;
+	--color-warning-content: oklch(18% 0.02 71) !important;
+	--color-error: oklch(68% 0.13 20) !important;
+	--color-error-content: oklch(14% 0.02 20) !important;
+
+	--border: 1px !important;
+}
+
+[data-theme="dark"] body,
+body[data-theme="dark"] {
+	background: var(--color-base-100) !important;
+	color: var(--color-base-content) !important;
+}
+
+[data-theme="dark"] .maplibregl-canvas,
+.maplibregl-canvas[data-theme="dark"] {
+	background: #0a0a0b !important;
+}
+
+[data-theme="dark"] .maplibregl-canvas-container::after,
+[data-theme="dark"] .mapboxgl-canvas-container::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.28) !important;
+	pointer-events: none;
+	z-index: 5;
+}
+
+[data-theme="dark"] [data-sonner-toaster] {
+	color-scheme: dark !important;
+}
+[data-theme="dark"] [data-sonner-toast] {
+	background: color-mix(in oklab, var(--color-base-200), black 6%) !important;
+	color: var(--color-base-content) !important;
+	border: 1px solid color-mix(in oklab, var(--color-base-300), black 10%) !important;
+	box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45) !important;
+}
+
+[data-theme="dark"] .maplibregl-map {
+	--ml-ctrl-border-radius: 0.75rem;
+	--ml-font:
+		14px/20px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial,
+		"Apple Color Emoji", "Segoe UI Emoji";
+	--ml-font-attribution: inherit;
+	--ml-c-bg-1: color-mix(in oklab, var(--color-base-200), black 6%);
+	--ml-c-bg-2: color-mix(in oklab, var(--color-base-200), black 10%);
+	--ml-c-bg-3: color-mix(in oklab, var(--color-base-300), black 10%);
+	--ml-c-icon-1: var(--color-base-content);
+	--ml-c-icon-2: var(--color-base-content);
+	--ml-c-active: var(--color-primary);
+	--ml-c-error: var(--color-error);
+	--ml-c-outline: var(--color-warning);
+	--ml-o-disabled: 0.35;
+	--ml-shadow: 0 6px 24px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.3);
+	--ml-shadow-active: 0 8px 30px rgba(0, 0, 0, 0.5);
+	--ml-c-link-1: var(--color-base-content);
+	--ml-c-link-2: var(--color-base-content);
+	--ml-c-logo-1: var(--color-base-100);
+	--ml-c-logo-2: var(--color-base-300);
+}
+
+[data-theme="dark"] .maplibregl-map .maplibregl-ctrl-group,
+[data-theme="dark"] .mapboxgl-map .mapboxgl-ctrl-group {
+	background: color-mix(in oklab, var(--color-base-200), black 6%) !important;
+	color: var(--color-base-content) !important;
+	box-shadow:
+		0 6px 24px rgba(0, 0, 0, 0.45),
+		0 2px 6px rgba(0, 0, 0, 0.3) !important;
+	border: 1px solid color-mix(in oklab, var(--color-base-300), black 10%) !important;
+}
+[data-theme="dark"] .maplibregl-map .maplibregl-ctrl-group > button,
+[data-theme="dark"] .mapboxgl-map .mapboxgl-ctrl-group > button {
+	background: transparent !important;
+	color: var(--color-base-content) !important;
+}
+[data-theme="dark"] .maplibregl-map .maplibregl-ctrl-group > button + button,
+[data-theme="dark"] .mapboxgl-map .mapboxgl-ctrl-group > button + button {
+	border-top-color: color-mix(in oklab, var(--color-base-300), black 10%) !important;
+}
+[data-theme="dark"] .maplibregl-map .maplibregl-ctrl button:not(:disabled):hover,
+[data-theme="dark"] .mapboxgl-map .mapboxgl-ctrl button:not(:disabled):hover {
+	background: color-mix(in oklab, var(--color-base-200), white 6%) !important;
+}
+[data-theme="dark"] .maplibregl-ctrl-attrib.maplibregl-compact,
+[data-theme="dark"] .mapboxgl-ctrl-attrib.mapboxgl-compact,
+[data-theme="dark"] .maplibregl-ctrl-scale,
+[data-theme="dark"] .mapboxgl-ctrl-scale,
+[data-theme="dark"] .maplibregl-popup-content,
+[data-theme="dark"] .mapboxgl-popup-content {
+	background: color-mix(in oklab, var(--color-base-200), black 6%) !important;
+	color: var(--color-base-content) !important;
+	border-color: color-mix(in oklab, var(--color-base-300), black 10%) !important;
+}
+[data-theme="dark"] .maplibregl-ctrl-attrib a,
+[data-theme="dark"] .mapboxgl-ctrl-attrib a {
+	color: var(--color-base-content) !important;
+}
+[data-theme="dark"] [data-sonner-toast] [data-title] {
+	color: var(--color-base-content) !important;
+}
+[data-theme="dark"] [data-sonner-toast] [data-icon] {
+	color: var(--color-base-content) !important;
+}
+[data-theme="dark"] [data-sonner-toast] [data-close-button] {
+	color: var(--color-base-content) !important;
+}
+
+[data-theme="dark"] [data-sonner-toast][data-type="error"] [data-icon],
+[data-theme="dark"] [data-sonner-toast][data-type="error"] [data-close-button] {
+	color: var(--color-error) !important;
+}
+[data-theme="dark"] [data-sonner-toast][data-type="warning"] [data-icon],
+[data-theme="dark"] [data-sonner-toast][data-type="warning"] [data-close-button] {
+	color: var(--color-warning) !important;
+}
+
+[data-theme="dark"] [data-sonner-toast][data-type="error"] {
+	background: color-mix(in oklab, var(--color-error), var(--color-base-200) 85%) !important;
+	border-color: color-mix(in oklab, var(--color-error), var(--color-base-300) 70%) !important;
+}
+[data-theme="dark"] [data-sonner-toast][data-type="success"] {
+	background: color-mix(in oklab, var(--color-success), var(--color-base-200) 85%) !important;
+	border-color: color-mix(in oklab, var(--color-success), var(--color-base-300) 70%) !important;
+}
+[data-theme="dark"] [data-sonner-toast][data-type="info"] {
+	background: color-mix(in oklab, var(--color-info), var(--color-base-200) 85%) !important;
+	border-color: color-mix(in oklab, var(--color-info), var(--color-base-300) 70%) !important;
+}
+[data-theme="dark"] [data-sonner-toast][data-type="warning"] {
+	background: color-mix(in oklab, var(--color-warning), var(--color-base-200) 85%) !important;
+	border-color: color-mix(in oklab, var(--color-warning), var(--color-base-300) 70%) !important;
+}
