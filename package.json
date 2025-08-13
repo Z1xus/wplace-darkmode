@@ -1,6 +1,6 @@
 {
 	"name": "wplace darkmode",
-	"version": "1.0.0",
+	"version": "1.1.0",
 	"description": "a dark theme for wplace.live",
 	"module": "src/index.ts",
 	"type": "module",
@@ -17,7 +17,12 @@
 			"https://wplace.live/*",
 			"https://*.wplace.live/*"
 		],
-		"@grant": "GM_addStyle",
+		"@grant": [
+			"GM_addStyle",
+			"GM_getValue",
+			"GM_setValue",
+			"GM_registerMenuCommand"
+		],
 		"@run-at": "document-start",
 		"@noframes": "true"
 	},

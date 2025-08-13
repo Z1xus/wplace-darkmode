@@ -5,9 +5,173 @@ class App {
 		this.applyStyles();
 		this.applyThemeTokens();
 		this.addThemeToggle();
+		this.initOverlayCustomization();
+		this.addOverlaySliderControl();
 	}
 	private applyStyles() {
 		GM_addStyle(STYLES);
+	}
+
+	private addOverlaySliderControl() {
+		const STORAGE_KEY = "wplace.overlayOpacity";
+		const DEFAULT_OPACITY = 0.28;
+
+		const findContainer = (): Element | null => {
+			let el = document.querySelector(".absolute.left-2.top-2.z-30.flex.flex-col.gap-3");
+			if (el) return el;
+			el = document.querySelector(
+				'div[class*="left-2"][class*="top-2"][class*="flex"][class*="gap-3"]'
+			);
+			return el;
+		};
+
+		const ensureMounted = () => {
+			try {
+				const container = findContainer();
+				if (!container) return false;
+				let wrap = document.getElementById("wplace-overlay-ui");
+				if (!wrap) {
+					wrap = document.createElement("div");
+					wrap.id = "wplace-overlay-ui";
+					wrap.style.position = "relative";
+					container.prepend(wrap);
+				}
+
+				const themeBtn = document.getElementById("wplace-theme-toggle") as HTMLButtonElement | null;
+				if (!themeBtn) return false;
+
+				let panel = document.getElementById("wplace-overlay-panel");
+				if (!panel) {
+					panel = document.createElement("div");
+					panel.id = "wplace-overlay-panel";
+					panel.style.position = "fixed";
+					panel.style.left = "0";
+					panel.style.top = "0";
+					panel.style.zIndex = "9999";
+					panel.style.background = "var(--color-base-200)";
+					panel.style.color = "var(--color-base-content)";
+					panel.style.border = "1px solid color-mix(in oklab, var(--color-base-300), black 10%)";
+					panel.style.boxShadow = "0 8px 30px rgba(0,0,0,.45)";
+					panel.style.padding = "8px 10px";
+					panel.style.borderRadius = "10px";
+					panel.style.display = "none";
+					panel.style.width = "220px";
+					panel.innerHTML = `
+						<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+							<strong style="font-size:12px">Map dimming</strong>
+							<span id="wplace-overlay-value" style="margin-left:auto;font-size:12px">-</span>
+						</div>
+						<input id="wplace-overlay-range" type="range" min="0" max="90" step="1" style="width:100%" aria-label="Map dimming" title="Map dimming (0–90%)" />
+						<div style="display:flex;justify-content:flex-end;margin-top:8px">
+							<button id="wplace-overlay-reset" class="btn btn-xs" style="font-size:12px">Reset</button>
+						</div>
+					`;
+					document.body.append(panel);
+				}
+
+				const valueEl = document.getElementById("wplace-overlay-value") as HTMLElement;
+				const rangeEl = document.getElementById("wplace-overlay-range") as HTMLInputElement;
+				const resetEl = document.getElementById("wplace-overlay-reset") as HTMLButtonElement;
+
+				const getOpacity = (): number => {
+					const s = getComputedStyle(document.documentElement)
+						.getPropertyValue("--wplace-overlay-opacity")
+						.trim();
+					const n = parseFloat(s);
+					return Number.isFinite(n) ? n : DEFAULT_OPACITY;
+				};
+
+				const setOpacity = (n: number) => {
+					const clamped = Math.max(0, Math.min(0.9, n));
+					document.documentElement.style.setProperty("--wplace-overlay-opacity", String(clamped));
+					try {
+						GM_setValue?.(STORAGE_KEY, clamped);
+					} catch {}
+					if (valueEl) valueEl.textContent = `${Math.round(clamped * 100)}%`;
+					if (rangeEl) rangeEl.value = String(Math.round(clamped * 100));
+				};
+
+				const initial = (() => {
+					try {
+						return (GM_getValue?.(STORAGE_KEY, getOpacity()) as number) ?? DEFAULT_OPACITY;
+					} catch {
+						return getOpacity();
+					}
+				})();
+				setOpacity(initial);
+
+				const positionPanel = () => {
+					if (!panel || !themeBtn) return;
+					const r = themeBtn.getBoundingClientRect();
+					panel.style.left = `${Math.round(r.right + 8)}px`;
+					panel.style.top = `${Math.round(r.top)}px`;
+				};
+				positionPanel();
+				window.addEventListener("scroll", positionPanel, true);
+				window.addEventListener("resize", positionPanel);
+
+				let hideTimer: number | null = null;
+				const showPanel = () => {
+					if (!panel) return;
+					if (hideTimer) {
+						clearTimeout(hideTimer);
+						hideTimer = null;
+					}
+					positionPanel();
+					panel.style.display = "block";
+					panel.classList.remove("wplace-visible");
+					requestAnimationFrame(() => {
+						void (panel as HTMLDivElement).offsetWidth;
+						(panel as HTMLDivElement).classList.add("wplace-visible");
+					});
+				};
+				const scheduleHide = () => {
+					if (!panel) return;
+					if (hideTimer) clearTimeout(hideTimer);
+					hideTimer = setTimeout(() => {
+						(panel as HTMLDivElement).classList.remove("wplace-visible");
+						setTimeout(() => {
+							(panel as HTMLDivElement).style.display = "none";
+						}, 160);
+					}, 120) as unknown as number;
+				};
+
+				themeBtn.addEventListener("mouseenter", showPanel);
+				themeBtn.addEventListener("mouseleave", scheduleHide);
+				panel.addEventListener("mouseenter", () => {
+					if (hideTimer) {
+						clearTimeout(hideTimer);
+						hideTimer = null;
+					}
+				});
+				panel.addEventListener("mouseleave", scheduleHide);
+				rangeEl.oninput = () => {
+					const pct = parseFloat(rangeEl.value);
+					if (!Number.isFinite(pct)) return;
+					setOpacity(pct / 100);
+				};
+				if (resetEl)
+					resetEl.onclick = () => {
+						setOpacity(DEFAULT_OPACITY);
+					};
+
+				return true;
+			} catch {
+				return false;
+			}
+		};
+
+		ensureMounted();
+		let lastEnsure = 0;
+		const obs = new MutationObserver(() => {
+			const now = Date.now();
+			if (now - lastEnsure < 300) return;
+			lastEnsure = now;
+			ensureMounted();
+		});
+		try {
+			obs.observe(document.body || document.documentElement, { subtree: true, childList: true });
+		} catch {}
 	}
 	private applyThemeTokens() {
 		try {
@@ -127,6 +291,61 @@ class App {
 			} catch {}
 		}, 1500);
 		setTimeout(() => clearInterval(iv), 60000);
+	}
+
+	private initOverlayCustomization() {
+		const STORAGE_KEY = "wplace.overlayOpacity";
+		const DEFAULT_OPACITY = 0.28;
+
+		const applyOpacity = (value: number) => {
+			try {
+				const clamped = Math.max(0, Math.min(0.9, value));
+				document.documentElement.style.setProperty("--wplace-overlay-opacity", String(clamped));
+			} catch {}
+		};
+
+		try {
+			const stored = (GM_getValue?.(STORAGE_KEY, DEFAULT_OPACITY) ?? DEFAULT_OPACITY) as number;
+			applyOpacity(Number(stored) || DEFAULT_OPACITY);
+		} catch {
+			applyOpacity(DEFAULT_OPACITY);
+		}
+
+		const parseInput = (input: string): number | null => {
+			let s = input.trim();
+			if (!s) return null;
+			if (s.endsWith("%")) {
+				const n = parseFloat(s.slice(0, -1));
+				if (Number.isNaN(n)) return null;
+				return n / 100;
+			}
+			const n = parseFloat(s);
+			if (Number.isNaN(n)) return null;
+			return n > 1 ? n / 100 : n;
+		};
+
+		const openPrompt = () => {
+			try {
+				const current = parseFloat(
+					getComputedStyle(document.documentElement)
+						.getPropertyValue("--wplace-overlay-opacity")
+						.trim()
+				);
+				const suggestion = Number.isFinite(current) ? current : DEFAULT_OPACITY;
+				const answer = window.prompt(
+					"Map dark overlay intensity (0-1 or percent, e.g. 0.28 or 28%)",
+					String(suggestion)
+				);
+				if (answer == null) return;
+				const parsed = parseInput(answer);
+				if (parsed == null) return;
+				const clamped = Math.max(0, Math.min(0.9, parsed));
+				try {
+					GM_setValue?.(STORAGE_KEY, clamped);
+				} catch {}
+				applyOpacity(clamped);
+			} catch {}
+		};
 	}
 }
 

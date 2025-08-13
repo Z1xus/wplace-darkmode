@@ -28,6 +28,8 @@ body[data-theme="dark"] {
 	--color-error-content: oklch(14% 0.02 20) !important;
 
 	--border: 1px !important;
+
+	--wplace-overlay-opacity: 0.28;
 }
 
 [data-theme="dark"] body,
@@ -46,7 +48,7 @@ body[data-theme="dark"] {
 	content: "";
 	position: absolute;
 	inset: 0;
-	background: rgba(0, 0, 0, 0.28) !important;
+	background: rgb(0 0 0 / var(--wplace-overlay-opacity, 0.28)) !important;
 	pointer-events: none;
 	z-index: 5;
 }
@@ -154,4 +156,16 @@ body[data-theme="dark"] {
 [data-theme="dark"] [data-sonner-toast][data-type="warning"] {
 	background: color-mix(in oklab, var(--color-warning), var(--color-base-200) 85%) !important;
 	border-color: color-mix(in oklab, var(--color-warning), var(--color-base-300) 70%) !important;
+}
+
+#wplace-overlay-panel {
+	opacity: 0;
+	transform: translateY(-6px) scale(0.98);
+	transition:
+		opacity 120ms ease,
+		transform 160ms ease;
+}
+#wplace-overlay-panel.wplace-visible {
+	opacity: 1;
+	transform: translateY(0) scale(1);
 }
