@@ -15,6 +15,10 @@ Userscript that applies a tasteful dark theme to `wplace.live` with a switch.
 3. Visit `https://wplace.live` — the script loads automatically.
 4. Use the round toggle button in the top-left controls to switch dark/light.
 
+### Ad break
+
+Need to convert colors to wplace format? Try my converter at [yawcc.z1x.us](https://yawcc.z1x.us).
+
 ### Building
 
 ```bash
