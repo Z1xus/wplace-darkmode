@@ -1,6 +1,6 @@
 {
-	"name": "wplace darkmode",
-	"version": "1.1.1",
+	"name": "wplace-darkmode",
+	"version": "1.1.2",
 	"description": "a dark theme for wplace.live",
 	"module": "src/index.ts",
 	"type": "module",
@@ -24,7 +24,9 @@
 			"GM_registerMenuCommand"
 		],
 		"@run-at": "document-start",
-		"@noframes": "true"
+		"@noframes": "true",
+		"@name": "wplace darkmode",
+		"@namespace": "https://github.com/z1xus/wplace-darkmode"
 	},
 	"author": "z1xus",
 	"license": "MIT",
