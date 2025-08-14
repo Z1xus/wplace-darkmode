@@ -8,6 +8,21 @@ class App {
 		this.initOverlayCustomization();
 		this.addOverlaySliderControl();
 	}
+
+	private readonly themeStorageKey = "wplace.theme";
+
+	private setTheme(theme: "dark" | "light") {
+		try {
+			document.documentElement.setAttribute("data-theme", theme);
+			if (theme === "dark") {
+				document.body.style.backgroundColor = "var(--color-base-100)";
+				document.body.style.color = "var(--color-base-content)";
+			} else {
+				document.body.style.backgroundColor = "";
+				document.body.style.color = "";
+			}
+		} catch {}
+	}
 	private applyStyles() {
 		GM_addStyle(STYLES);
 	}
@@ -177,10 +192,11 @@ class App {
 	}
 	private applyThemeTokens() {
 		try {
-			document.documentElement.setAttribute("data-theme", "dark");
-			document.body.style.backgroundColor = "var(--color-base-100)";
-			document.body.style.color = "var(--color-base-content)";
-		} catch {}
+			const stored = (GM_getValue?.(this.themeStorageKey, "dark") ?? "dark") as "dark" | "light";
+			this.setTheme(stored);
+		} catch {
+			this.setTheme("dark");
+		}
 	}
 
 	private addThemeToggle() {
@@ -261,9 +277,11 @@ class App {
 				btn.onclick = () => {
 					try {
 						const dark = isDark();
-						document.documentElement.setAttribute("data-theme", dark ? "light" : "dark");
-						document.body.style.backgroundColor = dark ? "" : "var(--color-base-100)";
-						document.body.style.color = dark ? "" : "var(--color-base-content)";
+						const next = dark ? "light" : "dark";
+						this.setTheme(next);
+						try {
+							GM_setValue?.(this.themeStorageKey, next);
+						} catch {}
 						updateButton(btn);
 					} catch {}
 				};
