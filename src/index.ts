@@ -15,6 +15,7 @@ class App {
 	private addOverlaySliderControl() {
 		const STORAGE_KEY = "wplace.overlayOpacity";
 		const DEFAULT_OPACITY = 0.28;
+		const isDarkMode = () => document.documentElement.getAttribute("data-theme") === "dark";
 
 		const findContainer = (): Element | null => {
 			let el = document.querySelector(".absolute.left-2.top-2.z-30.flex.flex-col.gap-3");
@@ -112,6 +113,7 @@ class App {
 
 				let hideTimer: number | null = null;
 				const showPanel = () => {
+					if (!isDarkMode()) return;
 					if (!panel) return;
 					if (hideTimer) {
 						clearTimeout(hideTimer);
