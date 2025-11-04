@@ -4,7 +4,11 @@
 [![Issues](https://img.shields.io/github/issues/z1xus/wplace-darkmode)](https://github.com/z1xus/wplace-darkmode/issues)
 [![Pull Requests](https://img.shields.io/github/issues-pr/z1xus/wplace-darkmode)](https://github.com/z1xus/wplace-darkmode/pulls)
 
-Userscript that applies a tasteful dark theme to `wplace.live` with a switch.
+Userscript that provides a toggle for wplace.live's dark mode.
+
+> [!NOTE]
+>
+> Upon datamining the wplace website, it was discovered that it actually has native dark mode support. Since version 2.0.0, this script now only acts as a toggle for this hidden setting. If you want the old behavior, please install an older version. Thanks!
 
 ![Palette](assets/palette.png)
 

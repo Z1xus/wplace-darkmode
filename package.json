@@ -1,7 +1,7 @@
 {
 	"name": "wplace-darkmode",
-	"version": "1.2.0",
-	"description": "a dark theme for wplace.live",
+	"version": "2.0.0",
+	"description": "a toggle for wplace.live's dark theme",
 	"module": "src/index.ts",
 	"type": "module",
 	"repository": {

@@ -1,201 +1,76 @@
-import STYLES from "./scss/style.scss";
-
 class App {
 	constructor() {
-		this.applyStyles();
-		this.applyThemeTokens();
 		this.addThemeToggle();
-		this.initOverlayCustomization();
-		this.addOverlaySliderControl();
 	}
 
-	private readonly themeStorageKey = "wplace.theme";
+	private readonly themeStorageKey = "theme";
 
-	private setTheme(theme: "dark" | "light") {
+	private setTheme(theme: "dark" | "custom-winter") {
 		try {
+			localStorage.setItem(this.themeStorageKey, theme);
 			document.documentElement.setAttribute("data-theme", theme);
-			if (theme === "dark") {
-				document.body.style.backgroundColor = "var(--color-base-100)";
-				document.body.style.color = "var(--color-base-content)";
-			} else {
-				document.body.style.backgroundColor = "";
-				document.body.style.color = "";
-			}
-		} catch {}
-	}
-	private applyStyles() {
-		GM_addStyle(STYLES);
-	}
-
-	private addOverlaySliderControl() {
-		const STORAGE_KEY = "wplace.overlayOpacity";
-		const DEFAULT_OPACITY = 0.28;
-		const isDarkMode = () => document.documentElement.getAttribute("data-theme") === "dark";
-
-		const findContainer = (): Element | null => {
-			let el = document.querySelector(".absolute.left-2.top-2.z-30.flex.flex-col.gap-3");
-			if (el) return el;
-			el = document.querySelector(
-				'div[class*="left-2"][class*="top-2"][class*="flex"][class*="gap-3"]'
-			);
-			return el;
-		};
-
-		const ensureMounted = () => {
+			this.setupBridge();
 			try {
-				const container = findContainer();
-				if (!container) return false;
-				let wrap = document.getElementById("wplace-overlay-ui");
-				if (!wrap) {
-					wrap = document.createElement("div");
-					wrap.id = "wplace-overlay-ui";
-					wrap.style.position = "relative";
-					container.prepend(wrap);
-				}
-
-				const themeBtn = document.getElementById("wplace-theme-toggle") as HTMLButtonElement | null;
-				if (!themeBtn) return false;
-
-				let panel = document.getElementById("wplace-overlay-panel");
-				if (!panel) {
-					panel = document.createElement("div");
-					panel.id = "wplace-overlay-panel";
-					panel.style.position = "fixed";
-					panel.style.left = "0";
-					panel.style.top = "0";
-					panel.style.zIndex = "9999";
-					panel.style.background = "var(--color-base-200)";
-					panel.style.color = "var(--color-base-content)";
-					panel.style.border = "1px solid color-mix(in oklab, var(--color-base-300), black 10%)";
-					panel.style.boxShadow = "0 8px 30px rgba(0,0,0,.45)";
-					panel.style.padding = "8px 10px";
-					panel.style.borderRadius = "10px";
-					panel.style.display = "none";
-					panel.style.width = "220px";
-					panel.innerHTML = `
-						<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-							<strong style="font-size:12px">Map dimming</strong>
-							<span id="wplace-overlay-value" style="margin-left:auto;font-size:12px">-</span>
-						</div>
-						<input id="wplace-overlay-range" type="range" min="0" max="90" step="1" style="width:100%" aria-label="Map dimming" title="Map dimming (0–90%)" />
-						<div style="display:flex;justify-content:flex-end;margin-top:8px">
-							<button id="wplace-overlay-reset" class="btn btn-xs" style="font-size:12px">Reset</button>
-						</div>
-					`;
-					document.body.append(panel);
-				}
-
-				const valueEl = document.getElementById("wplace-overlay-value") as HTMLElement;
-				const rangeEl = document.getElementById("wplace-overlay-range") as HTMLInputElement;
-				const resetEl = document.getElementById("wplace-overlay-reset") as HTMLButtonElement;
-
-				const getOpacity = (): number => {
-					const s = getComputedStyle(document.documentElement)
-						.getPropertyValue("--wplace-overlay-opacity")
-						.trim();
-					const n = parseFloat(s);
-					return Number.isFinite(n) ? n : DEFAULT_OPACITY;
-				};
-
-				const setOpacity = (n: number) => {
-					const clamped = Math.max(0, Math.min(0.9, n));
-					document.documentElement.style.setProperty("--wplace-overlay-opacity", String(clamped));
-					try {
-						GM_setValue?.(STORAGE_KEY, clamped);
-					} catch {}
-					if (valueEl) valueEl.textContent = `${Math.round(clamped * 100)}%`;
-					if (rangeEl) rangeEl.value = String(Math.round(clamped * 100));
-				};
-
-				const initial = (() => {
-					try {
-						return (GM_getValue?.(STORAGE_KEY, getOpacity()) as number) ?? DEFAULT_OPACITY;
-					} catch {
-						return getOpacity();
-					}
-				})();
-				setOpacity(initial);
-
-				const positionPanel = () => {
-					if (!panel || !themeBtn) return;
-					const r = themeBtn.getBoundingClientRect();
-					panel.style.left = `${Math.round(r.right + 8)}px`;
-					panel.style.top = `${Math.round(r.top)}px`;
-				};
-				positionPanel();
-				window.addEventListener("scroll", positionPanel, true);
-				window.addEventListener("resize", positionPanel);
-
-				let hideTimer: number | null = null;
-				const showPanel = () => {
-					if (!isDarkMode()) return;
-					if (!panel) return;
-					if (hideTimer) {
-						clearTimeout(hideTimer);
-						hideTimer = null;
-					}
-					positionPanel();
-					panel.style.display = "block";
-					panel.classList.remove("wplace-visible");
-					requestAnimationFrame(() => {
-						void (panel as HTMLDivElement).offsetWidth;
-						(panel as HTMLDivElement).classList.add("wplace-visible");
-					});
-				};
-				const scheduleHide = () => {
-					if (!panel) return;
-					if (hideTimer) clearTimeout(hideTimer);
-					hideTimer = setTimeout(() => {
-						(panel as HTMLDivElement).classList.remove("wplace-visible");
-						setTimeout(() => {
-							(panel as HTMLDivElement).style.display = "none";
-						}, 160);
-					}, 120) as unknown as number;
-				};
-
-				themeBtn.addEventListener("mouseenter", showPanel);
-				themeBtn.addEventListener("mouseleave", scheduleHide);
-				panel.addEventListener("mouseenter", () => {
-					if (hideTimer) {
-						clearTimeout(hideTimer);
-						hideTimer = null;
-					}
-				});
-				panel.addEventListener("mouseleave", scheduleHide);
-				rangeEl.oninput = () => {
-					const pct = parseFloat(rangeEl.value);
-					if (!Number.isFinite(pct)) return;
-					setOpacity(pct / 100);
-				};
-				if (resetEl)
-					resetEl.onclick = () => {
-						setOpacity(DEFAULT_OPACITY);
-					};
-
-				return true;
-			} catch {
-				return false;
-			}
-		};
-
-		ensureMounted();
-		let lastEnsure = 0;
-		const obs = new MutationObserver(() => {
-			const now = Date.now();
-			if (now - lastEnsure < 300) return;
-			lastEnsure = now;
-			ensureMounted();
-		});
-		try {
-			obs.observe(document.body || document.documentElement, { subtree: true, childList: true });
+				window.dispatchEvent(new CustomEvent("wplace:set-theme", { detail: theme }));
+			} catch {}
 		} catch {}
 	}
-	private applyThemeTokens() {
+
+	private setupBridge() {
 		try {
-			const stored = (GM_getValue?.(this.themeStorageKey, "dark") ?? "dark") as "dark" | "light";
-			this.setTheme(stored);
+			if (document.getElementById("wplace-theme-bridge")) return;
+			const script = document.createElement("script");
+			script.id = "wplace-theme-bridge";
+			script.type = "text/javascript";
+			script.textContent = `(() => {
+				let setter = null;
+				const toAbs = (u) => { try { return new URL(u, location.href).href } catch { return u } };
+				async function findSetter() {
+					if (setter) return setter;
+					try {
+						const urls = new Set(
+							[...document.querySelectorAll('link[rel="modulepreload"]')].map(l => l.getAttribute('href')).concat(
+								[...document.querySelectorAll('script[type="module"][src]')].map(s => s.getAttribute('src'))
+							).filter(Boolean).map(toAbs)
+						);
+						for (const url of urls) {
+							try {
+								const mod = await import(url);
+								for (const val of Object.values(mod)) {
+									if (!val || typeof val !== 'object') continue;
+									let proto = val;
+									try { proto = Object.getPrototypeOf(val) || val } catch {}
+									const desc = Object.getOwnPropertyDescriptor(proto, 'theme') || Object.getOwnPropertyDescriptor(val, 'theme');
+									if (desc && typeof desc.set === 'function') {
+										setter = (next) => { try { desc.set.call(val, next) } catch { try { val.theme = next } catch {} } };
+										return setter;
+									}
+								}
+							} catch {}
+						}
+					} catch {}
+					return null;
+				}
+				async function handle(event) {
+					const next = event.detail;
+					try {
+						const setter = await findSetter();
+						setter && setter(next);
+					} catch {}
+				}
+				window.addEventListener('wplace:set-theme', handle);
+			})();`;
+			document.documentElement.appendChild(script);
+			script.remove();
+		} catch {}
+	}
+
+	private getCurrentTheme(): "dark" | "custom-winter" {
+		try {
+			const theme = localStorage.getItem(this.themeStorageKey);
+			return theme === "dark" ? "dark" : "custom-winter";
 		} catch {
-			this.setTheme("dark");
+			return "custom-winter";
 		}
 	}
 
@@ -215,7 +90,7 @@ class App {
 			);
 		};
 
-		const isDark = () => document.documentElement.getAttribute("data-theme") === "dark";
+		const isDark = () => this.getCurrentTheme() === "dark";
 		const updateButton = (btn: HTMLButtonElement) => {
 			const dark = isDark();
 			btn.title = dark ? "Switch to light theme" : "Switch to dark theme";
@@ -224,45 +99,14 @@ class App {
 		};
 
 		const findContainer = (): Element | null => {
-			let el = document.querySelector(".absolute.left-2.top-2.z-30.flex.flex-col.gap-3");
-			if (el) return el;
-			const refreshBtn = document.querySelector('button[title="Refresh"]');
-			if (refreshBtn) {
-				let n: HTMLElement | null = refreshBtn as HTMLElement;
-				for (let i = 0; n && i < 5; i++) {
-					n = n.parentElement;
-					if (
-						n &&
-						n.classList.contains("absolute") &&
-						n.classList.contains("left-2") &&
-						n.classList.contains("top-2")
-					) {
-						return n;
-					}
-				}
-			}
-			const liveLink = document.querySelector('a[title="Livestreams"]');
-			if (liveLink) {
-				let n: HTMLElement | null = liveLink as HTMLElement;
-				for (let i = 0; n && i < 5; i++) {
-					n = n.parentElement;
-					if (
-						n &&
-						n.classList.contains("absolute") &&
-						n.classList.contains("left-2") &&
-						n.classList.contains("top-2")
-					) {
-						return n;
-					}
-				}
-			}
-			el = document.querySelector(
+			const container = document.querySelector(".absolute.left-2.top-2.z-30.flex.flex-col.gap-3");
+			if (container) return container;
+			return document.querySelector(
 				'div[class*="left-2"][class*="top-2"][class*="flex"][class*="gap-3"]'
 			);
-			return el;
 		};
 
-		const ensureMounted = () => {
+		const mount = () => {
 			try {
 				const container = findContainer();
 				if (!container) return false;
@@ -277,11 +121,8 @@ class App {
 				btn.onclick = () => {
 					try {
 						const dark = isDark();
-						const next = dark ? "light" : "dark";
+						const next = dark ? "custom-winter" : "dark";
 						this.setTheme(next);
-						try {
-							GM_setValue?.(this.themeStorageKey, next);
-						} catch {}
 						updateButton(btn);
 					} catch {}
 				};
@@ -291,81 +132,20 @@ class App {
 			}
 		};
 
-		ensureMounted();
-		let lastEnsure = 0;
-		const obs = new MutationObserver(() => {
+		mount();
+
+		let lastMount = 0;
+		const observer = new MutationObserver(() => {
 			try {
 				const now = Date.now();
-				if (now - lastEnsure < 300) return;
-				lastEnsure = now;
-				ensureMounted();
+				if (now - lastMount < 300) return;
+				lastMount = now;
+				mount();
 			} catch {}
 		});
 		try {
-			obs.observe(document.body || document.documentElement, { subtree: true, childList: true });
+			observer.observe(document.body || document.documentElement, { subtree: true, childList: true });
 		} catch {}
-
-		const iv = setInterval(() => {
-			try {
-				ensureMounted();
-			} catch {}
-		}, 1500);
-		setTimeout(() => clearInterval(iv), 60000);
-	}
-
-	private initOverlayCustomization() {
-		const STORAGE_KEY = "wplace.overlayOpacity";
-		const DEFAULT_OPACITY = 0.28;
-
-		const applyOpacity = (value: number) => {
-			try {
-				const clamped = Math.max(0, Math.min(0.9, value));
-				document.documentElement.style.setProperty("--wplace-overlay-opacity", String(clamped));
-			} catch {}
-		};
-
-		try {
-			const stored = (GM_getValue?.(STORAGE_KEY, DEFAULT_OPACITY) ?? DEFAULT_OPACITY) as number;
-			applyOpacity(Number(stored) || DEFAULT_OPACITY);
-		} catch {
-			applyOpacity(DEFAULT_OPACITY);
-		}
-
-		const parseInput = (input: string): number | null => {
-			let s = input.trim();
-			if (!s) return null;
-			if (s.endsWith("%")) {
-				const n = parseFloat(s.slice(0, -1));
-				if (Number.isNaN(n)) return null;
-				return n / 100;
-			}
-			const n = parseFloat(s);
-			if (Number.isNaN(n)) return null;
-			return n > 1 ? n / 100 : n;
-		};
-
-		const openPrompt = () => {
-			try {
-				const current = parseFloat(
-					getComputedStyle(document.documentElement)
-						.getPropertyValue("--wplace-overlay-opacity")
-						.trim()
-				);
-				const suggestion = Number.isFinite(current) ? current : DEFAULT_OPACITY;
-				const answer = window.prompt(
-					"Map dark overlay intensity (0-1 or percent, e.g. 0.28 or 28%)",
-					String(suggestion)
-				);
-				if (answer == null) return;
-				const parsed = parseInput(answer);
-				if (parsed == null) return;
-				const clamped = Math.max(0, Math.min(0.9, parsed));
-				try {
-					GM_setValue?.(STORAGE_KEY, clamped);
-				} catch {}
-				applyOpacity(clamped);
-			} catch {}
-		};
 	}
 }
 
